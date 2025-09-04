@@ -4,7 +4,6 @@ import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { addInvoiceToSheet } from "../googleSheets.js";
 import Invoice from "../models/Invoice.js";
 
 const router = express.Router();

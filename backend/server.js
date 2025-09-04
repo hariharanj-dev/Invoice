@@ -24,7 +24,22 @@ mongoose
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // Middleware
-app.use(cors( "*"));
+const allowedOrigin = process.env.FRONTEND_ORIGIN || "*";
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || origin === allowedOrigin) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
+
 app.use(express.json());
 
 // Static files
