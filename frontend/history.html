@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoice History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDnt-HRZ96l8L2NSVF5x2dyrdMKaouBo4E",
+      authDomain: "invoice-8ff3d.firebaseapp.com",
+      projectId: "invoice-8ff3d",
+      storageBucket: "invoice-8ff3d.firebasestorage.app",
+      messagingSenderId: "429434497748",
+      appId: "1:429434497748:web:55a293d90ec66c1c5ce941",
+      measurementId: "G-02EPHNT9TN"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+  </script>
+</head>
+<body class="bg-gray-100">
+
+<!-- Navbar -->
+<nav class="bg-black text-white px-6 py-3 flex justify-between items-center">
+  <h1 class="text-xl font-bold">Invoice App</h1>
+
+  <!-- Mobile Menu Button -->
+  <button id="menuBtn" class="sm:hidden text-white focus:outline-none">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+      viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  </button>
+
+  <!-- Desktop Menu -->
+  <div class="hidden sm:flex space-x-6 items-center">
+    <a href="index.html" class="nav-link px-3 py-1 rounded">Home</a>
+    <a href="history.html" class="nav-link px-3 py-1 rounded">Invoices</a>
+    <a href="edit-company.html" class="nav-link px-3 py-1 rounded">Company</a>
+    <span id="userEmail" class="text-yellow-300 font-medium hidden"></span>
+    <button id="loginBtn" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Login</button>
+    <button id="logoutBtn" class="bg-red-500 text-white px-3 py-1 rounded hidden">Logout</button>
+  </div>
+</nav>
+
+<!-- Mobile Dropdown -->
+<div id="mobileMenu" class="hidden sm:hidden bg-black text-white px-6 py-4 space-y-3">
+  <a href="index.html" class="block nav-link px-3 py-1 rounded">Home</a>
+  <a href="history.html" class="block nav-link px-3 py-1 rounded">Invoices</a>
+  <a href="edit-company.html" class="block nav-link px-3 py-1 rounded">Company</a>
+  <span id="userEmailMobile" class="block text-yellow-300 font-medium hidden"></span>
+  <button id="loginBtnMobile" class="block w-full text-left bg-white text-blue-600 px-3 py-1 rounded hover:bg-gray-100">Login</button>
+  <button id="logoutBtnMobile" class="block w-full text-left bg-red-500 text-white px-3 py-1 rounded hidden">Logout</button>
+</div>
+
+<!-- Invoice History -->
+<div class="max-w-5xl mx-auto bg-white shadow p-6 rounded-lg mt-6">
+  <h2 class="text-2xl font-bold mb-6 text-center sm:text-left">All Invoices</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full border text-sm sm:text-base">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="p-2">ID</th>
+          <th class="p-2">Customer</th>
+          <th class="p-2">Total</th>
+          <th class="p-2">Date</th>
+          <th class="p-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="historyTable">
+        <tr><td colspan="5" class="p-2 text-center">Loading invoices...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const API_BASE = "http://localhost:5000";
+  const historyTable = document.getElementById("historyTable");
+
+  // Navbar toggle
+  const menuBtn = document.getElementById("menuBtn");
+  const mobileMenu = document.getElementById("mobileMenu");
+  menuBtn.addEventListener("click", () => {
+    mobileMenu.classList.toggle("hidden");
+  });
+
+  // Load Invoices for Logged-in User
+  async function loadHistory() {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        historyTable.innerHTML = `<tr><td colspan="5" class="p-2 text-center">Please login to see invoices</td></tr>`;
+        return;
+      }
+
+      const userEmail = user.email;
+      const res = await fetch(`${API_BASE}/api/invoices?userEmail=${encodeURIComponent(userEmail)}`);
+      const data = await res.json();
+      historyTable.innerHTML = "";
+
+      if (data.success && data.data.length) {
+        data.data.forEach(inv => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="p-2">${inv._id}</td>
+            <td class="p-2">${inv.customerName}</td>
+            <td class="p-2">₹${inv.total}</td>
+            <td class="p-2">${new Date(inv.date).toLocaleDateString()}</td>
+            <td class="p-2">
+              <a href="${API_BASE}/api/invoices/${inv._id}/pdf" target="_blank"
+                class="px-2 py-1 bg-blue-600 text-white rounded">Download</a>
+            </td>
+          `;
+          historyTable.appendChild(tr);
+        });
+      } else {
+        historyTable.innerHTML = `<tr><td colspan="5" class="p-2 text-center">No invoices yet</td></tr>`;
+      }
+    } catch (err) {
+      console.error(err);
+      historyTable.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-red-500">Error loading invoices</td></tr>`;
+    }
+  }
+
+  // Firebase Login/Logout
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const loginBtnMobile = document.getElementById("loginBtnMobile");
+  const logoutBtnMobile = document.getElementById("logoutBtnMobile");
+  const userEmail = document.getElementById("userEmail");
+  const userEmailMobile = document.getElementById("userEmailMobile");
+
+  loginBtn.addEventListener("click", () => window.location.href = "login.html");
+  loginBtnMobile.addEventListener("click", () => window.location.href = "login.html");
+
+  async function handleLogout() {
+    await auth.signOut();
+    alert("Logged out!");
+    window.location.href = "login.html";
+  }
+  logoutBtn.addEventListener("click", handleLogout);
+  logoutBtnMobile.addEventListener("click", handleLogout);
+
+  // Auth state listener – also loads invoices
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      // Show email
+      userEmail.textContent = user.email;
+      userEmail.classList.remove("hidden");
+      userEmailMobile.textContent = user.email;
+      userEmailMobile.classList.remove("hidden");
+
+      // Show logout, hide login
+      loginBtn.classList.add("hidden");
+      loginBtnMobile.classList.add("hidden");
+      logoutBtn.classList.remove("hidden");
+      logoutBtnMobile.classList.remove("hidden");
+
+      // ✅ Load invoices after user is authenticated
+      loadHistory();
+    } else {
+      // Hide email
+      userEmail.classList.add("hidden");
+      userEmailMobile.classList.add("hidden");
+
+      // Show login, hide logout
+      loginBtn.classList.remove("hidden");
+      loginBtnMobile.classList.remove("hidden");
+      logoutBtn.classList.add("hidden");
+      logoutBtnMobile.classList.add("hidden");
+
+      // Clear invoice table
+      historyTable.innerHTML = `<tr><td colspan="5" class="p-2 text-center">Please login to see invoices</td></tr>`;
+    }
+  });
+
+  // Highlight Active Nav Link
+  const currentPage = window.location.pathname.split("/").pop();
+  document.querySelectorAll(".nav-link").forEach(link => {
+    if (link.getAttribute("href") === currentPage) {
+      link.classList.add("bg-blue-500", "text-white");
+    } else {
+      link.classList.add("text-white", "hover:bg-blue-500");
+    }
+  });
+</script>
+
+</body>
+</html>
