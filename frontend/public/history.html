@@ -40,7 +40,7 @@
 
   <!-- Desktop Menu -->
   <div class="hidden sm:flex space-x-6 items-center">
-    <a href="index.html" class="nav-link px-3 py-1 rounded">Home</a>
+    <a href="home.html" class="nav-link px-3 py-1 rounded">Home</a>
     <a href="history.html" class="nav-link px-3 py-1 rounded">Invoices</a>
     <a href="edit-company.html" class="nav-link px-3 py-1 rounded">Company</a>
     <span id="userEmail" class="text-yellow-300 font-medium hidden"></span>
@@ -51,7 +51,7 @@
 
 <!-- Mobile Dropdown -->
 <div id="mobileMenu" class="hidden sm:hidden bg-black text-white px-6 py-4 space-y-3">
-  <a href="index.html" class="block nav-link px-3 py-1 rounded">Home</a>
+  <a href="home.html" class="block nav-link px-3 py-1 rounded">Home</a>
   <a href="history.html" class="block nav-link px-3 py-1 rounded">Invoices</a>
   <a href="edit-company.html" class="block nav-link px-3 py-1 rounded">Company</a>
   <span id="userEmailMobile" class="block text-yellow-300 font-medium hidden"></span>
@@ -137,13 +137,13 @@
   const userEmail = document.getElementById("userEmail");
   const userEmailMobile = document.getElementById("userEmailMobile");
 
-  loginBtn.addEventListener("click", () => window.location.href = "login.html");
-  loginBtnMobile.addEventListener("click", () => window.location.href = "login.html");
+  loginBtn.addEventListener("click", () => window.location.href = "index.html");
+  loginBtnMobile.addEventListener("click", () => window.location.href = "index.html");
 
   async function handleLogout() {
     await auth.signOut();
     alert("Logged out!");
-    window.location.href = "login.html";
+    window.location.href = "index.html";
   }
   logoutBtn.addEventListener("click", handleLogout);
   logoutBtnMobile.addEventListener("click", handleLogout);

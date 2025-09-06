@@ -31,7 +31,7 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
     alert(`Welcome! UID: ${user.email}`);
 
     // Redirect to invoice home page
-    window.location.href = "index.html";
+    window.location.href = "edit-company.html";
   } catch (error) {
     errorMessage.textContent = error.message;
   }
